@@ -1,0 +1,120 @@
+# AgentSpec — pytest-style structural contracts for LLM agents
+
+## The Problem
+
+AI engineers in 2026 can tell you if their agent's output is *good* (DeepEval, RAGAS, LangSmith
+all do this). What they cannot easily tell you is whether their agent *behaved correctly* — in a
+deterministic, pass/fail way.
+
+The same questions come up every week in engineering teams:
+- "Did the agent call the search tool before summarizing, or did it summarize thin air again?"
+- "We hard-limit search to 3 calls for cost control — did this deployment exceed that?"
+- "Someone added a tool that can delete data. Does our agent ever call it in production?"
+- "After the report was written, did the agent keep searching? (It shouldn't.)"
+
+These are not quality questions. They are structural questions. The answers are deterministic —
+either the tool was called, or it wasn't. But no existing tool gives engineers a simple way
+to express these assertions and run them in CI.
+
+DeepEval grades LLM output quality (hallucination, relevancy, coherence). LangSmith traces
+what happened. Maxim AI is a full observability platform. None of them are designed for writing
+5-line behavioral contracts that run offline in 50 milliseconds.
+
+## What This Solves
+
+AgentSpec is a pip-installable Python library for writing structural contracts about LLM agent
+tool-call behavior. Think of it as pytest, but for agent behavior.
+
+```python
+from core.contracts import ContractSet
+
+spec = ContractSet("research_agent")
+spec.must_call("search")                          # Must search at least once
+spec.must_call_before("search", "summarize")      # Must search BEFORE summarizing
+spec.must_not_call("delete_file")                 # Must NEVER call delete_file
+spec.must_call_at_most("search", n=3)             # Cost control: max 3 searches
+spec.must_call_in_sequence("search", "summarize", "write_report")
+
+report = spec.check(my_agent_session)
+report.assert_all_pass()   # Raises AssertionError in pytest if anything fails
+```
+
+Output when a broken agent runs:
+```
+  [✓] must_call(search): 'search' was called
+  [✗] must_call_before(search, summarize): 'summarize' (step 0) was called before 'search' (step 1)
+  [✗] must_not_call(delete_file): 'delete_file' was called 1 time(s) but must never be called
+  [✗] must_call_at_most(search, n=3): 'search' called 4 time(s), exceeds limit of 3
+
+  1 passed / 3 failed — FAIL
+```
+
+## How It Works
+
+```
+Agent runs → tool calls are recorded as AgentSession
+                    │
+                    ▼
+             ContractSet.check(session)
+             (pure Python, no LLM calls, no network)
+                    │
+                    ▼
+             ContractReport → report.assert_all_pass()
+```
+
+**3 key decisions:**
+- **Pure Python, no platform** — each contract is a function `(AgentSession) -> ContractResult`. Runs in CI in milliseconds. No API key. No rate limits. No external service.
+- **Framework-agnostic `AgentSession`** — build it from Anthropic tool_use blocks, LangSmith traces, OpenTelemetry spans, or manually in tests. AgentSpec doesn't care where the trace came from.
+- **`report.assert_all_pass()` bridges to pytest** — one method, zero friction. Drop AgentSpec into any existing pytest suite with no changes to your test infrastructure.
+
+## Run It
+
+```bash
+git clone [private — available on request]
+cd agentspec
+pip install -r requirements.txt
+python demo/demo.py
+```
+
+Demo runs without an API key — shows a well-behaved agent (7/7 contracts pass) and a
+broken agent (6/7 contracts fail) side by side.
+
+## Contracts Available
+
+| Method | What it checks |
+|--------|----------------|
+| `must_call(tool)` | Tool called at least once |
+| `must_not_call(tool)` | Tool never called |
+| `must_call_before(a, b)` | Tool `a` appears before `b` in trace |
+| `must_call_at_most(tool, n)` | Tool called ≤ n times |
+| `must_call_at_least(tool, n)` | Tool called ≥ n times |
+| `must_not_call_after(tool, trigger)` | After `trigger`, `tool` never called again |
+| `must_call_in_sequence(*tools)` | All tools appear in this order |
+
+## Technical Decisions
+
+**1. Deterministic, not probabilistic**
+This is not an eval framework. There's no LLM grading anything. The pass/fail verdict is 100% deterministic — if the tool was called, it was called. This makes AgentSpec useful in CI/CD gates where you need reliable green/red signals.
+
+**2. Contracts as Python method calls, not YAML or DSL**
+The alternative was a YAML-based contract spec. YAML is fine for simple cases but breaks down when you need conditional logic or dynamic values (like "search must be called at most `cost_limit / 0.01` times"). Python handles this naturally. Engineers already know it.
+
+**3. First-occurrence semantics for ordering contracts**
+`must_call_before("search", "summarize")` checks the FIRST occurrence of each tool.
+This is the most useful semantic for catching "agent summarized before searching" bugs.
+A "last occurrence" variant could be added but wasn't needed for the core use cases.
+
+## Tests
+
+```bash
+pytest tests/ -v
+# 48 passed in 0.07s
+```
+
+## What's Missing / What's Next
+
+1. **Trace adapters** — currently you have to build `AgentSession` manually or use the Anthropic adapter. Ready-made adapters for LangSmith, LangChain callbacks, and OpenTelemetry would make this drop-in for any team.
+
+2. **Probabilistic contracts** — `must_call_on_average(tool, n=2, over=100_runs)` for contracts that hold statistically but not deterministically. This would require running the agent multiple times and aggregating results.
+
+3. **CI report format** — JUnit XML output so the results appear natively in GitHub Actions, CircleCI, and Jenkins test reports alongside regular pytest output.
