@@ -317,6 +317,59 @@ class ContractSet:
         self._contracts.append((contract_name, check))
         return self
 
+    def must_call_exactly(self, tool: str, n: int) -> "ContractSet":
+        """Agent MUST call this tool EXACTLY n times — not more, not less."""
+        contract_name = f"must_call_exactly({tool}, n={n})"
+
+        def check(session: AgentSession) -> ContractResult:
+            count = len(session.calls(tool))
+            if count == n:
+                return ContractResult(
+                    contract_name, Verdict.PASS,
+                    f"'{tool}' called exactly {n} time(s) as required"
+                )
+            direction = "too many" if count > n else "too few"
+            return ContractResult(
+                contract_name, Verdict.FAIL,
+                f"'{tool}' called {count} time(s), expected exactly {n} ({direction} calls)"
+            )
+
+        self._contracts.append((contract_name, check))
+        return self
+
+    def must_call_with_arg(self, tool: str, arg_key: str, arg_value: object) -> "ContractSet":
+        """
+        At least one call to 'tool' must include arg_key=arg_value in its args.
+        Useful for: "search must be called with source='verified' at least once."
+        """
+        contract_name = f"must_call_with_arg({tool}, {arg_key}={arg_value!r})"
+
+        def check(session: AgentSession) -> ContractResult:
+            matching = [
+                tc for tc in session.calls(tool)
+                if tc.args.get(arg_key) == arg_value
+            ]
+            if matching:
+                return ContractResult(
+                    contract_name, Verdict.PASS,
+                    f"'{tool}' called with {arg_key}={arg_value!r} ({len(matching)} time(s))"
+                )
+            all_calls = session.calls(tool)
+            if not all_calls:
+                return ContractResult(
+                    contract_name, Verdict.FAIL,
+                    f"'{tool}' was never called"
+                )
+            seen_values = [tc.args.get(arg_key, "<missing>") for tc in all_calls]
+            return ContractResult(
+                contract_name, Verdict.FAIL,
+                f"'{tool}' called {len(all_calls)} time(s) but never with {arg_key}={arg_value!r}. "
+                f"Seen values: {seen_values}"
+            )
+
+        self._contracts.append((contract_name, check))
+        return self
+
     # ------------------------------------------------------------------
     # Execution
     # ------------------------------------------------------------------
@@ -325,3 +378,11 @@ class ContractSet:
         """Run all contracts against this session. Returns a full report."""
         results = [checker(session) for _, checker in self._contracts]
         return ContractReport(spec_name=self.name, results=results)
+
+    def check_all(self, sessions: list[AgentSession]) -> list[ContractReport]:
+        """
+        Run contracts against multiple sessions (parameterized testing).
+        Returns one ContractReport per session.
+        Use with pytest.mark.parametrize for scenario coverage.
+        """
+        return [self.check(session) for session in sessions]
