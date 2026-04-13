@@ -2,7 +2,6 @@
 tests/test_integration.py — Integration tests for the full AgentSpec pipeline.
 Uses mock sessions — no API calls.
 """
-import os
 
 
 import pytest
@@ -12,7 +11,7 @@ from agentspec.recorder import (
     make_broken_research_agent_session,
     make_customer_support_session,
 )
-from agentspec.reporter import format_summary, print_report
+from agentspec.reporter import format_summary
 
 
 def build_research_spec() -> ContractSet:

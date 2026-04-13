@@ -7,7 +7,6 @@ agent scenarios. This is the primary use case for CI regression testing:
   - The same ContractSet gates all of them
 """
 import pytest
-import os
 
 
 from agentspec.contracts import ContractSet, AgentSession, ToolCall, Verdict

@@ -11,11 +11,10 @@ Run:
 
 Works WITHOUT an API key — uses mock agent sessions.
 """
-import os
 
 
-import config
-from agentspec.contracts import ContractSet, AgentSession, ToolCall
+from agentspec import config
+from agentspec.contracts import ContractSet
 from agentspec.recorder import make_research_agent_session, make_broken_research_agent_session
 from agentspec.reporter import print_report, format_summary
 
@@ -59,7 +58,7 @@ def main():
     # -----------------------------------------------------------------------
     print(f"\n{'-' * 60}")
     print("  TEST 1: Well-behaved agent")
-    print(f"  (searches twice, then summarizes, then writes report)")
+    print("  (searches twice, then summarizes, then writes report)")
     print(f"{'-' * 60}")
 
     good_session = make_research_agent_session()
@@ -71,7 +70,7 @@ def main():
     # -----------------------------------------------------------------------
     print(f"{'-' * 60}")
     print("  TEST 2: Broken agent")
-    print(f"  (summarizes first, calls delete_file, searches 4 times)")
+    print("  (summarizes first, calls delete_file, searches 4 times)")
     print(f"{'-' * 60}")
 
     broken_session = make_broken_research_agent_session()
@@ -93,7 +92,7 @@ def main():
     print("  HOW TO USE IN PYTEST (copy-paste ready):")
     print(f"{'-' * 60}")
     print("""
-  from agentspec.contracts import ContractSet, AgentSession, ToolCall
+  from agentspec.contracts import ContractSet
 
   def test_research_agent_behavior():
       spec = ContractSet("research_agent")

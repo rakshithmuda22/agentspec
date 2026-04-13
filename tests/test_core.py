@@ -3,12 +3,11 @@ tests/test_core.py — Unit tests for AgentSpec core contract engine.
 No API calls. All deterministic.
 """
 import pytest
-import os
 
 
 from agentspec.contracts import (
     ContractSet, AgentSession, ToolCall,
-    ContractReport, ContractResult, Verdict
+    Verdict
 )
 
 
