@@ -1,4 +1,20 @@
+![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
+![pytest](https://img.shields.io/badge/tested%20with-pytest-yellow)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+![tests passing](https://img.shields.io/badge/tests-48%20passed-brightgreen)
+
 # AgentSpec — pytest-style structural contracts for LLM agents
+
+## Why I Built This
+
+Anthropic's "Demystifying evals for AI agents" blog makes the case that agent evaluation
+needs to go beyond output quality — you need to verify that agents followed the right process,
+not just that they produced a plausible answer. LangChain's 2026 State of AI Agents report
+found that 32% of teams cite output quality as their top barrier to production. But when I
+looked at the tooling landscape, every framework was solving the *quality* half of the problem
+(is the output good?) while ignoring the *behavioral* half (did the agent do the right thing?).
+AgentSpec exists to close that gap: deterministic, structural assertions about tool-call
+behavior that run in CI and give you a reliable pass/fail signal.
 
 ## The Problem
 
@@ -70,7 +86,7 @@ Agent runs → tool calls are recorded as AgentSession
 ## Run It
 
 ```bash
-git clone [private — available on request]
+git clone https://github.com/rakshithmuda22/agentspec.git
 cd agentspec
 pip install -r requirements.txt
 python demo/demo.py
@@ -78,6 +94,32 @@ python demo/demo.py
 
 Demo runs without an API key — shows a well-behaved agent (7/7 contracts pass) and a
 broken agent (6/7 contracts fail) side by side.
+
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+```
+
+```python
+from core.contracts import ContractSet, AgentSession, ToolCall
+
+# Define behavioral contracts for your agent
+spec = ContractSet("my_agent")
+spec.must_call("search")
+spec.must_call_before("search", "summarize")
+spec.must_not_call("delete_file")
+
+# Build a session from your agent's tool calls
+session = AgentSession(tool_calls=[
+    ToolCall(tool_name="search", args={"q": "latest news"}),
+    ToolCall(tool_name="summarize", args={"text": "..."}),
+])
+
+# Check contracts — deterministic, no LLM needed
+report = spec.check(session)
+report.assert_all_pass()  # Use in pytest — raises AssertionError on failure
+```
 
 ## Contracts Available
 
@@ -90,6 +132,25 @@ broken agent (6/7 contracts fail) side by side.
 | `must_call_at_least(tool, n)` | Tool called ≥ n times |
 | `must_not_call_after(tool, trigger)` | After `trigger`, `tool` never called again |
 | `must_call_in_sequence(*tools)` | All tools appear in this order |
+
+## Comparison
+
+| Capability | AgentSpec | DeepEval | LangSmith | Maxim AI |
+|---|---|---|---|---|
+| Output quality scoring (hallucination, relevancy) | -- | Yes | Yes | Yes |
+| Structural tool-call assertions (must_call, ordering) | **Yes** | -- | -- | -- |
+| Deterministic pass/fail (no LLM grader) | **Yes** | -- | Partial | -- |
+| Runs offline, no API key needed | **Yes** | -- | -- | -- |
+| Sub-100ms execution | **Yes** | -- | -- | -- |
+| pytest integration (assert_all_pass) | **Yes** | Yes | -- | -- |
+| Trace visualization & observability | -- | -- | Yes | Yes |
+| Production monitoring & dashboards | -- | -- | Yes | Yes |
+| CI/CD gate ready | **Yes** | Yes | Partial | Partial |
+| Framework-agnostic (works with any agent) | **Yes** | Partial | LangChain-first | Partial |
+
+**AgentSpec does not replace these tools.** It fills a gap none of them cover: fast, deterministic,
+structural assertions about *what the agent did* (not how good the output was). Use DeepEval for
+quality scoring, LangSmith for observability, and AgentSpec for behavioral contracts in CI.
 
 ## Technical Decisions
 
@@ -110,6 +171,14 @@ A "last occurrence" variant could be added but wasn't needed for the core use ca
 pytest tests/ -v
 # 48 passed in 0.07s
 ```
+
+## Built With
+
+- **Python 3.11** — core language
+- **Pydantic** — data validation for `AgentSession` and `ToolCall` models
+- **pytest** — test runner and assertion integration via `report.assert_all_pass()`
+- **Anthropic SDK** — optional adapter for building sessions from Claude tool_use blocks
+- **GitHub Actions** — CI pipeline (`.github/workflows/ci.yml`)
 
 ## What's Missing / What's Next
 
