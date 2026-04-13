@@ -172,21 +172,22 @@ A "last occurrence" variant could be added but wasn't needed for the core use ca
 
 ## Performance
 
-Benchmarked on Apple Silicon (M-series). 7 contracts checked per run, 1000 iterations:
+Measured with [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark) (industry standard). 7 contracts per run. Auto-calibrated rounds (43K-132K iterations). Apple Silicon.
 
-| Session Size | p50 | p95 | p99 |
-|-------------|-----|-----|-----|
-| 5 tool calls | 3.7 us | 4.2 us | 16.6 us |
-| 10 tool calls | 4.0 us | 4.5 us | 17.8 us |
-| 25 tool calls | 5.0 us | 12.6 us | 15.8 us |
-| 50 tool calls | 6.6 us | 8.1 us | 29.0 us |
-| 100 tool calls | 10.2 us | 11.0 us | 12.5 us |
+| Session Size | Min | Median | Mean | Rounds | Ops/sec |
+|-------------|-----|--------|------|--------|---------|
+| 5 tool calls | 3.17 us | 3.38 us | 3.41 us | 43,165 | 293,275 |
+| 10 tool calls | 3.42 us | 3.67 us | 3.70 us | 132,591 | 270,259 |
+| 25 tool calls | 4.29 us | 4.54 us | 4.64 us | 123,077 | 215,730 |
+| 50 tool calls | 5.79 us | 6.04 us | 6.15 us | 103,008 | 162,579 |
+| 100 tool calls | 8.75 us | 9.04 us | 9.18 us | 72,506 | 108,958 |
 
-**That's microseconds, not milliseconds.** 7 contracts on a 100-call session in under 11 microseconds. No LLM calls. No network. Pure Python.
+**That's microseconds, not milliseconds.** 7 contracts on a 100-call session in 9 microseconds. 100K+ operations per second. No LLM calls. No network. Zero dependencies.
 
-Run the benchmark yourself:
+Run the benchmarks yourself:
 ```bash
-python benchmarks/run_benchmark.py
+pip install pytest-benchmark
+pytest benchmarks/test_benchmark.py --benchmark-only
 ```
 
 ## Tests

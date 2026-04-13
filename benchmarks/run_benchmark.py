@@ -32,7 +32,7 @@ def build_spec() -> ContractSet:
     spec.must_call_before("search", "summarize")
     spec.must_call_before("fetch", "parse")
     spec.must_not_call("delete_file")
-    spec.must_call_at_most("search", n=10)
+    spec.must_call_at_most("search", n=100)
     spec.must_call_at_least("search", n=1)
     return spec
 
