@@ -117,8 +117,8 @@ spec.must_not_call("delete_file")
 
 # Build a session from your agent's tool calls
 session = AgentSession(tool_calls=[
-    ToolCall(tool_name="search", args={"q": "latest news"}),
-    ToolCall(tool_name="summarize", args={"text": "..."}),
+    ToolCall(name="search", args={"q": "latest news"}),
+    ToolCall(name="summarize", args={"text": "..."}),
 ])
 
 # Check contracts — deterministic, no LLM needed

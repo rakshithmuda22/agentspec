@@ -2,19 +2,17 @@
 tests/test_integration.py — Integration tests for the full AgentSpec pipeline.
 Uses mock sessions — no API calls.
 """
-import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
-from core.contracts import ContractSet, Verdict
-from core.recorder import (
+from agentspec.contracts import ContractSet, Verdict
+from agentspec.recorder import (
     make_research_agent_session,
     make_broken_research_agent_session,
     make_customer_support_session,
 )
-from core.reporter import format_summary, print_report
+from agentspec.reporter import format_summary, print_report
 
 
 def build_research_spec() -> ContractSet:

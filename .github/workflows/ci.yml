@@ -96,5 +96,5 @@ jobs:
         run: pip install pyflakes
       - name: Run pyflakes (syntax check)
         run: |
-          python -m pyflakes core/ tests/ demo/ pytest_plugin.py
+          python -m pyflakes agentspec/ tests/ demo/
           echo "Syntax check passed."

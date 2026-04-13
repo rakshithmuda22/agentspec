@@ -7,12 +7,10 @@ agent scenarios. This is the primary use case for CI regression testing:
   - The same ContractSet gates all of them
 """
 import pytest
-import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.contracts import ContractSet, AgentSession, ToolCall, Verdict
+from agentspec.contracts import ContractSet, AgentSession, ToolCall, Verdict
 
 
 # ---------------------------------------------------------------------------

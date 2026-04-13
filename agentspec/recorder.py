@@ -8,11 +8,10 @@ Two modes:
 The recorder produces an AgentSession that you then check against a ContractSet.
 """
 from __future__ import annotations
-import json
 from typing import Any, Callable
 
 from agentspec.contracts import AgentSession, ToolCall
-import config
+from agentspec import config
 
 
 # ---------------------------------------------------------------------------

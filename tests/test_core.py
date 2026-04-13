@@ -3,12 +3,10 @@ tests/test_core.py — Unit tests for AgentSpec core contract engine.
 No API calls. All deterministic.
 """
 import pytest
-import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.contracts import (
+from agentspec.contracts import (
     ContractSet, AgentSession, ToolCall,
     ContractReport, ContractResult, Verdict
 )

@@ -11,15 +11,13 @@ Run:
 
 Works WITHOUT an API key — uses mock agent sessions.
 """
-import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
-from core.contracts import ContractSet, AgentSession, ToolCall
-from core.recorder import make_research_agent_session, make_broken_research_agent_session
-from core.reporter import print_report, format_summary
+from agentspec.contracts import ContractSet, AgentSession, ToolCall
+from agentspec.recorder import make_research_agent_session, make_broken_research_agent_session
+from agentspec.reporter import print_report, format_summary
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +93,7 @@ def main():
     print("  HOW TO USE IN PYTEST (copy-paste ready):")
     print(f"{'-' * 60}")
     print("""
-  from core.contracts import ContractSet, AgentSession, ToolCall
+  from agentspec.contracts import ContractSet, AgentSession, ToolCall
 
   def test_research_agent_behavior():
       spec = ContractSet("research_agent")
