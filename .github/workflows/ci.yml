@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -e ".[dev]"
 
       - name: Security check — no secrets in code
         run: |
@@ -80,8 +80,8 @@ jobs:
         run: |
           COUNT=$(python -m pytest tests/ --collect-only -q 2>&1 | grep "selected" | grep -oE "[0-9]+")
           echo "Test count: $COUNT"
-          if [ "$COUNT" -lt 48 ]; then
-            echo "ERROR: Expected at least 48 tests, found $COUNT. Tests may have been accidentally deleted."
+          if [ "$COUNT" -lt 70 ]; then
+            echo "ERROR: Expected at least 70 tests, found $COUNT. Tests may have been accidentally deleted."
             exit 1
           fi
 
