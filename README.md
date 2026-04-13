@@ -138,20 +138,29 @@ report.assert_all_pass()  # Use in pytest — raises AssertionError on failure
 | `must_not_call_after(tool, trigger)` | After `trigger`, `tool` never called again |
 | `must_call_in_sequence(*tools)` | All tools appear in this order |
 
-## Comparison
+## Comparison (honest)
 
-| Capability | AgentSpec | DeepEval | LangSmith | Maxim AI |
+| | AgentSpec | DeepEval ToolCorrectness | LangChain AgentEvals | Promptfoo |
 |---|---|---|---|---|
-| Output quality scoring (hallucination, relevancy) | -- | Yes | Yes | Yes |
-| Structural tool-call assertions (must_call, ordering) | **Yes** | -- | -- | -- |
-| Deterministic pass/fail (no LLM grader) | **Yes** | -- | Partial | -- |
-| Runs offline, no API key needed | **Yes** | -- | -- | -- |
-| Sub-100ms execution | **Yes** | -- | -- | -- |
-| pytest integration (assert_all_pass) | **Yes** | Yes | -- | -- |
-| Trace visualization & observability | -- | -- | Yes | Yes |
-| Production monitoring & dashboards | -- | -- | Yes | Yes |
-| CI/CD gate ready | **Yes** | Yes | Partial | Partial |
-| Framework-agnostic (works with any agent) | **Yes** | Partial | LangChain-first | Partial |
+| **What it does** | Structural tool-call contracts | LLM output quality + tool correctness | Trajectory matching | General LLM eval |
+| Tool ordering assertions | Yes (7 contract types) | Yes (should_consider_ordering) | Yes (strict mode) | No |
+| Deterministic (no LLM needed) | **Yes - always** | Partial (uses LLM for optimization) | Partial (LLM-as-judge option) | No (LLM-based) |
+| Dependencies | **0** | 26+ (openai, grpcio, sentry, etc.) | LangSmith platform | Node.js + many |
+| Install size | **15 KB** | ~50 MB+ with deps | Platform-dependent | Heavy |
+| Speed (7 contracts) | **9 us median** | ~100ms+ (async, LLM calls) | ~200ms+ (API calls) | ~500ms+ |
+| Throughput | **296K ops/sec** | Hundreds/sec | Hundreds/sec | Tens/sec |
+| Thread-safe | **Yes (tested with 20 threads)** | Not documented | Not documented | N/A |
+| pytest native | **Yes (assert_all_pass)** | Yes (deepeval test) | No (SDK-based) | No (CLI-based) |
+| Works offline | **Yes** | No (needs API key) | No (needs LangSmith) | No |
+| Framework-agnostic | **Yes** | Partial | LangChain-first | Partial |
+| Output quality scoring | No | **Yes** | **Yes** | **Yes** |
+| Dashboards / monitoring | No | **Yes** | **Yes** | **Yes** |
+
+**When to use AgentSpec:** You need fast, deterministic, zero-dependency assertions on tool-call behavior in CI/CD. You want pass/fail, not scores.
+
+**When to use DeepEval instead:** You need LLM-graded output quality (hallucination, relevancy, coherence). You want a cloud dashboard.
+
+**They are complementary, not competing.** Use AgentSpec for structural contracts in CI (did the agent call the right tools in the right order?) and DeepEval for quality evaluation (was the output good?).
 
 **AgentSpec does not replace these tools.** It fills a gap none of them cover: fast, deterministic,
 structural assertions about *what the agent did* (not how good the output was). Use DeepEval for
@@ -184,10 +193,25 @@ Measured with [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark) (i
 
 **That's microseconds, not milliseconds.** 7 contracts on a 100-call session in 9 microseconds. 100K+ operations per second. No LLM calls. No network. Zero dependencies.
 
-Run the benchmarks yourself:
+### Stress Tests
+
+| Test | Result |
+|------|--------|
+| 10,000 sessions sequentially | 0.042s (**240K ops/sec**) |
+| 100,000 sessions sequentially | 0.337s (**296K ops/sec**) |
+| 1,000 tool calls per session | 63.5 us median |
+| 5,000 tool calls per session | 303 us |
+| 50 contracts on one session | 35.3 us median |
+| 100 contracts on one session | 179 us |
+| 10 threads x 1,000 checks each | 0.042s (thread-safe) |
+| 20 threads x 500 checks each | 0.054s (**185K ops/sec concurrent**) |
+| 10,000 spec create/discard cycles | No memory leak |
+
+Run all benchmarks yourself:
 ```bash
 pip install pytest-benchmark
-pytest benchmarks/test_benchmark.py --benchmark-only
+pytest benchmarks/test_benchmark.py --benchmark-only   # precision benchmarks
+pytest benchmarks/test_stress.py -v -s                  # stress tests
 ```
 
 ## Tests
