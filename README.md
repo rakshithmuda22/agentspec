@@ -86,7 +86,7 @@ Agent runs → tool calls are recorded as AgentSession
 ## Install
 
 ```bash
-pip install agentspec
+pip install llm-agentspec
 ```
 
 Or from source:
