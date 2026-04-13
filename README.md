@@ -83,12 +83,17 @@ Agent runs → tool calls are recorded as AgentSession
 - **Framework-agnostic `AgentSession`** — build it from Anthropic tool_use blocks, LangSmith traces, OpenTelemetry spans, or manually in tests. AgentSpec doesn't care where the trace came from.
 - **`report.assert_all_pass()` bridges to pytest** — one method, zero friction. Drop AgentSpec into any existing pytest suite with no changes to your test infrastructure.
 
-## Run It
+## Install
 
+```bash
+pip install agentspec
+```
+
+Or from source:
 ```bash
 git clone https://github.com/rakshithmuda22/agentspec.git
 cd agentspec
-pip install -r requirements.txt
+pip install -e ".[dev]"
 python demo/demo.py
 ```
 
@@ -165,11 +170,30 @@ The alternative was a YAML-based contract spec. YAML is fine for simple cases bu
 This is the most useful semantic for catching "agent summarized before searching" bugs.
 A "last occurrence" variant could be added but wasn't needed for the core use cases.
 
+## Performance
+
+Benchmarked on Apple Silicon (M-series). 7 contracts checked per run, 1000 iterations:
+
+| Session Size | p50 | p95 | p99 |
+|-------------|-----|-----|-----|
+| 5 tool calls | 3.7 us | 4.2 us | 16.6 us |
+| 10 tool calls | 4.0 us | 4.5 us | 17.8 us |
+| 25 tool calls | 5.0 us | 12.6 us | 15.8 us |
+| 50 tool calls | 6.6 us | 8.1 us | 29.0 us |
+| 100 tool calls | 10.2 us | 11.0 us | 12.5 us |
+
+**That's microseconds, not milliseconds.** 7 contracts on a 100-call session in under 11 microseconds. No LLM calls. No network. Pure Python.
+
+Run the benchmark yourself:
+```bash
+python benchmarks/run_benchmark.py
+```
+
 ## Tests
 
 ```bash
 pytest tests/ -v
-# 48 passed in 0.07s
+# 73 passed in 0.06s
 ```
 
 ## Built With
