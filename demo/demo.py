@@ -12,6 +12,10 @@ Run:
 Works WITHOUT an API key — uses mock agent sessions.
 """
 
+import logging
+
+# Configure logging so print_report output is visible
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 from agentspec import config
 from agentspec.contracts import ContractSet

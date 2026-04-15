@@ -46,12 +46,12 @@ Engineers already know Python. They don't need to learn another config format.
 
 ### 3. AgentSession is framework-agnostic
 `AgentSession` is just a list of `ToolCall` objects. You can build it from:
-- Anthropic tool_use blocks (live mode, see `core/recorder.py`)
+- Anthropic tool_use blocks (live mode, see `agentspec/recorder.py`)
 - LangSmith traces (convert the trace to ToolCall objects)
 - OpenTelemetry spans (extract tool names from span attributes)
 - Manually in tests (the most common case in CI)
 
-The recorder in `core/recorder.py` handles the Anthropic API case.
+The recorder in `agentspec/recorder.py` handles the Anthropic API case.
 For other frameworks, you write a thin adapter that populates `AgentSession`.
 
 ### 4. report.assert_all_pass() bridges AgentSpec to pytest

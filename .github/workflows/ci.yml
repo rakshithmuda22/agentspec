@@ -1,5 +1,5 @@
 # AgentSpec CI — runs on every push and pull request
-# All 48+ contract tests must pass before merge
+# All 73 contract tests must pass before merge
 #
 # What this validates:
 #   - All structural contract assertions are deterministic (no flakiness)

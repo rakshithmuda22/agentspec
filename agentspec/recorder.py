@@ -1,5 +1,5 @@
 """
-core/recorder.py — Runs a Claude agent and records its tool calls.
+agentspec/recorder.py — Runs a Claude agent and records its tool calls.
 
 Two modes:
   live: calls the real Claude API with your tools defined, records what it calls

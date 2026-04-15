@@ -1,5 +1,5 @@
 """
-core/contracts.py — Contract definitions and assertion engine.
+agentspec/contracts.py — Contract definitions and assertion engine.
 
 AgentSpec lets you write STRUCTURAL contracts about LLM agent behavior.
 These are not quality metrics (no LLM-graded hallucination scores).

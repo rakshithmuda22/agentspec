@@ -96,7 +96,8 @@ print(report)
 
 Output:
 ```
-  AgentSpec Report - 'research_agent'
+  AgentSpec — Contract Report
+  Spec: 'research_agent'
   --------------------------------------------------
   [✓] must_call(search): 'search' was called
   [✓] must_call_before(search, summarize): 'search' (step 0) correctly precedes 'summarize' (step 2)
@@ -197,6 +198,8 @@ if report.overall.value == "FAIL":
 | `must_call_at_least(tool, n)` | Tool was called at least n times | `spec.must_call_at_least("search", n=2)` |
 | `must_not_call_after(tool, trigger)` | After `trigger` is called, `tool` is never called again | `spec.must_not_call_after("search", "write_report")` |
 | `must_call_in_sequence(*tools)` | All tools appear in this exact order | `spec.must_call_in_sequence("search", "analyze", "report")` |
+| `must_call_exactly(tool, n)` | Tool was called exactly n times | `spec.must_call_exactly("search", n=2)` |
+| `must_call_with_arg(tool, key, val)` | At least one call includes `key=val` in args | `spec.must_call_with_arg("search", "source", "verified")` |
 
 All contracts can be chained:
 
