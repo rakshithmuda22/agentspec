@@ -1,5 +1,5 @@
 # AgentSpec CI — runs on every push and pull request
-# All 73 contract tests must pass before merge
+# All 87 contract tests must pass before merge (incl. adapter + case study)
 #
 # What this validates:
 #   - All structural contract assertions are deterministic (no flakiness)
@@ -77,12 +77,15 @@ jobs:
         run: |
           python demo/demo.py
 
+      - name: Run example case study (real contracts against recorded sessions)
+        run: pytest examples/ -v
+
       - name: Check test count (regression guard)
         run: |
-          COUNT=$(python -m pytest tests/ --collect-only -q 2>&1 | tail -1 | grep -oE "^[0-9]+")
+          COUNT=$(python -m pytest tests/ examples/ --collect-only -q 2>&1 | tail -1 | grep -oE "^[0-9]+")
           echo "Test count: $COUNT"
-          if [ -z "$COUNT" ] || [ "$COUNT" -lt 70 ]; then
-            echo "WARNING: Expected at least 70 tests, found ${COUNT:-0}."
+          if [ -z "$COUNT" ] || [ "$COUNT" -lt 85 ]; then
+            echo "WARNING: Expected at least 85 tests, found ${COUNT:-0}."
           fi
 
   lint:

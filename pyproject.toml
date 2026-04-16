@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm-agentspec"
-version = "0.1.0"
+version = "0.2.0"
 description = "pytest-style behavioral contracts for LLM agent tool-call sequences"
 readme = "README.md"
 license = {text = "MIT"}

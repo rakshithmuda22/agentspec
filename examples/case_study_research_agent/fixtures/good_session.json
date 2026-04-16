@@ -1,0 +1,49 @@
+{
+  "description": "Claude Sonnet 4.5 running a research agent with search + summarize + write_report tools. This is the expected well-behaved trajectory: search twice, summarize, write report. No retries, no forbidden tools, no infinite-search loops.",
+  "recorded_at": "2026-04-14",
+  "model": "claude-sonnet-4-5",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Research and summarize the current state of LLM agent testing frameworks. Write a short report."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "I'll start by searching for recent work on LLM agent testing."},
+        {"type": "tool_use", "id": "tu_1", "name": "search", "input": {"query": "LLM agent testing frameworks 2026", "limit": 5}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [{"type": "tool_result", "tool_use_id": "tu_1", "content": "Found 5 results: DeepEval, Evalcraft, LangWatch Scenario, EvalView, AgentEvals"}]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "text", "text": "Let me get a second angle on benchmarks."},
+        {"type": "tool_use", "id": "tu_2", "name": "search", "input": {"query": "pytest agent evaluation benchmarks"}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [{"type": "tool_result", "tool_use_id": "tu_2", "content": "Found: DeepEval has 50+ metrics, 6 agent-specific; EvalView uses golden baselines"}]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "tool_use", "id": "tu_3", "name": "summarize", "input": {"sources": ["search:tu_1", "search:tu_2"]}}
+      ]
+    },
+    {
+      "role": "user",
+      "content": [{"type": "tool_result", "tool_use_id": "tu_3", "content": "Summary: Mature ecosystem; DeepEval dominant; gap around deterministic structural contracts."}]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {"type": "tool_use", "id": "tu_4", "name": "write_report", "input": {"title": "LLM Agent Testing, April 2026", "length": "short"}}
+      ]
+    }
+  ]
+}

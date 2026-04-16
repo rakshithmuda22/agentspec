@@ -1,7 +1,7 @@
 ![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue)
 ![pytest](https://img.shields.io/badge/tested%20with-pytest-yellow)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![tests](https://img.shields.io/badge/tests-73%20passed-brightgreen)
+![tests](https://img.shields.io/badge/tests-87%20passed-brightgreen)
 ![PyPI](https://img.shields.io/pypi/v/llm-agentspec)
 ![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 
@@ -302,20 +302,38 @@ AgentSpec doesn't care which framework you use. You just need to convert your ag
 
 ### From Anthropic Claude API (tool_use)
 
+Use the built-in adapter — no manual block iteration:
+
 ```python
-from agentspec import AgentSession, ToolCall
+from anthropic import Anthropic
+from agentspec import ContractSet
+from agentspec.adapters.anthropic import from_anthropic_response
 
-# After a Claude API call, response.content contains tool_use blocks
-tool_calls = []
-for block in response.content:
-    if block.type == "tool_use":
-        tool_calls.append(ToolCall(
-            name=block.name,
-            args=block.input,
-        ))
+client = Anthropic()
+resp = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=1024,
+    tools=[...],
+    messages=[{"role": "user", "content": "find docs about X"}],
+)
 
-session = AgentSession(tool_calls=tool_calls)
+session = from_anthropic_response(resp)
+
+spec = (ContractSet("docs_agent")
+    .must_call("search")
+    .must_not_call("delete_file")
+    .must_call_at_most("search", n=3))
+
+spec.check(session).assert_all_pass()
 ```
+
+For multi-turn tool-use loops, use `from_anthropic_messages(messages)` to
+capture every tool call across every assistant turn. The adapter works on
+both live SDK objects and recorded JSON fixtures, so you can commit real
+sessions to your repo and replay them in CI without an API key. See
+[`examples/case_study_research_agent/`](examples/case_study_research_agent/)
+for a full end-to-end demo — a good session passes all six contracts, a
+runaway session trips at-most + not-call and fails the CI run.
 
 ### From LangChain / LangGraph
 
